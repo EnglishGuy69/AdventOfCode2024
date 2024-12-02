@@ -1,4 +1,4 @@
-'''
+"""
 Author: Guy Pickering
 
 Date: 12-01-2024
@@ -11,7 +11,7 @@ Part 1: Compare the IDs from each list (in order from smallest to largest) and s
 numbers.
 
 Part 2: Multiply each ID in list 1 by the count of the number of times the ID appears in list 2.
-'''
+"""
 
 from collections import Counter
 
