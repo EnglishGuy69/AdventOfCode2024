@@ -1,4 +1,4 @@
-'''
+"""
 Author: Guy Pickering
 
 Date: 12-08-2024
@@ -15,7 +15,10 @@ Date: 12-08-2024
    a1_y = y1 - (y2-y1)
    a2_x = x2 + (x2-x1)
    a2_y = y2 + (y2-y1)
-'''
+
+Design Notes:
+
+"""
 
 import copy
 
@@ -23,6 +26,12 @@ def unique(l: list):
     return list(set(l))
 
 class AntennaMesh:
+    """
+    AntennaMesh represents all the antenna positions within the map that share the same frequency (i.e. have the same
+    symbol). The find_antinodes() function returns the positions of all the locations where the pairs of antennas
+    'interfere'. During Part 1, there is only one location (per end). But in Part 2, there can be multiples due to
+    the 'harmonics'. The include_harmonics parameter allows the class to be used for both parts.
+    """
     def __init__(self, frequency: str):
         self.frequency = frequency
         self.locations = []
@@ -42,10 +51,10 @@ class AntennaMesh:
         found_antinode = True
 
         m = 1
-        while found_antinode:
+        while found_antinode:  # Keep looping while antinodes remain within the bounds of the map.
             found_antinode = False
 
-            for direction in range(0, 2):
+            for direction in range(0, 2):  # 0, 1
                 if direction:
                     (ax, ay) = (x1-m*(x2-x1), y1-m*(y2-y1))
                 else:
@@ -53,16 +62,30 @@ class AntennaMesh:
 
                 if 0 <= ax < width and 0 <= ay < height:
                     antinodes.append((ax, ay))
-                    found_antinode = True
+                    found_antinode = True  # if at least one antinode is within the map, keep looking for harmonics...
 
-            if not include_harmonics:
+            if not include_harmonics: # If harmonics are not required (Part 1), simply skip the loop.
                 break
 
             m += 1
 
         return unique(antinodes)
 
-    def find_antinodes(self, width: int, height: int, include_harmonics: bool=False):
+    def find_antinodes(self,
+                       width: int,
+                       height: int,
+                       include_harmonics: bool=False) -> [(int,int)]:
+        """
+        Will list all the locations that antinodes are generated from pairs of antenna positions. Either one antinode
+        at each end of the pair (assuming they are not too close to the edge of the map, or aninodes periodically if
+        the 'include_harmonics' flag is set (per Part 2 of the puzzle).
+
+        :param width: Width of the map
+        :param height: Height of the map
+        :param include_harmonics: If True will generate multiple antinodes (each end) vs. just one (per end)
+        :return: A list of (x,y) locations of the antinodes
+        """
+
         antinodes = []
         locations = copy.copy(self.locations)
         while locations:
@@ -90,7 +113,6 @@ class AntennaMesh:
         return self.frequency + f' ({len(self.locations)})'
 
 class AntennaMeshList(list):
-
     def __contains__(self, item) -> bool:
         for a in self:
             if a.frequency == item:
@@ -98,17 +120,18 @@ class AntennaMeshList(list):
         return False
 
     def get_antenna_mesh(self, frequency) -> AntennaMesh:
-        return [am for am in self if am.frequency == frequency][0]
+        return next(am for am in self if am.frequency == frequency)
 
 
 class ResonantCollinearity:
     default_symbol = '.'
     antinode_symbol = '#'
 
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, debug: bool=False):
         self.map = []
         self.meshes = AntennaMeshList()
         self._load_data(filename)
+        self._debug = debug
 
     def _load_data(self, filename: str):
         with open(filename, 'r') as f:
@@ -139,9 +162,10 @@ class ResonantCollinearity:
 
         antinodes = unique(antinodes)
 
-        s = self.as_string(antinodes)
-        # print(s)
-        # print('')
+        if self._debug:
+            s = self.as_string(antinodes)
+            print(s)
+            print('')
 
         return len(antinodes)
 
